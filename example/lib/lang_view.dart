@@ -1,9 +1,15 @@
 import 'dart:developer';
 
-import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:example/generated/locale_keys.g.dart';
+import 'package:flutter/material.dart';
 
-class LanguageView extends StatelessWidget {
+class LanguageView extends StatefulWidget {
+  @override
+  State<LanguageView> createState() => _LanguageViewState();
+}
+
+class _LanguageViewState extends State<LanguageView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,6 +27,10 @@ class LanguageView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              child: Text(LocaleKeys.clickMe.tr()),
+              padding: EdgeInsets.only(bottom: 50),
+            ),
             Container(
               padding: EdgeInsets.only(top: 26),
               margin: EdgeInsets.symmetric(
@@ -115,7 +125,7 @@ class _SwitchListTileMenuItem extends StatelessWidget {
           onTap: () async {
             log(locale.toString(), name: toString());
             await context.setLocale(locale); //BuildContext extension method
-            Navigator.pop(context);
+            // Navigator.pop(context);
           }),
     );
   }

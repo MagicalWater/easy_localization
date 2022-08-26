@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+
 //import 'package:easy_localization_loader/easy_localization_loader.dart'; // import custom loaders
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -18,6 +19,7 @@ void main() async {
       Locale('ru', 'RU')
     ],
     path: 'resources/langs',
+    fallbackLocale: Locale('en', 'US'),
     child: MyApp(),
     // fallbackLocale: Locale('en', 'US'),
     // startLocale: Locale('de', 'DE'),
@@ -70,6 +72,10 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       counter++;
     });
+
+    // Future.delayed(Duration(seconds: 10)).then((value) {
+    //   context.setLocale(Locale.fromSubtags(languageCode: 'ar', countryCode: 'DZ'));
+    // });
   }
 
   void switchGender(bool val) {
@@ -80,6 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    print('刷新');
     return Scaffold(
       appBar: AppBar(
         title: Text(LocaleKeys.title).tr(),
@@ -88,8 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => LanguageView(), fullscreenDialog: true),
+                MaterialPageRoute(builder: (_) => LanguageView()),
               );
             },
             child: Icon(
@@ -105,6 +111,16 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Spacer(
               flex: 1,
+            ),
+            Text(
+              LocaleKeys.gender_with_arg.tr(
+                args: ['aissat'],
+                gender: _gender ? 'female' : 'male',
+              ),
+              style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold),
             ),
             Text(
               LocaleKeys.gender_with_arg,
@@ -155,12 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
             SizedBox(
               height: 20,
             ),
-            ElevatedButton(
-              onPressed: () {
-                context.resetLocale();
-              },
-              child: Text(LocaleKeys.reset_locale).tr(),
-            ),
+            StarB(),
             Spacer(
               flex: 1,
             ),
@@ -171,6 +182,23 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: incrementCounter,
         child: Text('+1'),
       ),
+    );
+  }
+}
+
+class StarB extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _StarBState();
+}
+
+class _StarBState extends State<StarB> {
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        context.setLocale(Locale('en', 'US'));
+      },
+      child: Text(LocaleKeys.reset_locale).tr(),
     );
   }
 }

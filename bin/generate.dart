@@ -261,6 +261,8 @@ class CodegenLoader extends AssetLoader{
 
     Map<String, dynamic>? data = json.decode(await fileData.readAsString());
 
+    data = _handleSpecialChar(data!);
+
     final mapString = const JsonEncoder.withIndent('  ').convert(data);
     gFile += 'static const Map<String,dynamic> $localeName = $mapString;\n';
   }
@@ -268,6 +270,22 @@ class CodegenLoader extends AssetLoader{
   gFile +=
       'static const Map<String, Map<String,dynamic>> mapLocales = {${listLocales.join(', ')}};';
   classBuilder.writeln(gFile);
+}
+
+/// 處理特殊字元
+/// [originData] - 可以是字串 / Map<String,dynamic> / List<dynamic>
+dynamic _handleSpecialChar<T>(dynamic originData) {
+  if (originData is Map<String, dynamic>) {
+    return originData.map((key, value) {
+      return MapEntry(key, _handleSpecialChar(value));
+    });
+  } else if (originData is List<dynamic>) {
+    return originData.map((e) => _handleSpecialChar(e)).toList();
+  } else if (originData is String) {
+    return originData.replaceAll('\$', r'＄');
+  } else {
+    return originData;
+  }
 }
 
 // _writeCsv(StringBuffer classBuilder, List<FileSystemEntity> files) async {

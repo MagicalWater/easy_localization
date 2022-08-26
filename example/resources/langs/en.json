@@ -1,5 +1,5 @@
 {
-    "title": "Hello",
+    "title": "Hello $",
     "msg": "Hello {} in the {} world ",
     "msg_named": "{} are written in the {lang} language",
     "clickMe": "Click me",
