@@ -50,8 +50,8 @@ void main() {
         LevelMessages.warning,
       ];
 
-      await r1.loadTranslations();
-      await r2.loadTranslations();
+      await r1.loadTranslations(r1.locale, r1.fallbackLocale);
+      await r2.loadTranslations(r2.locale, r2.fallbackLocale);
       Localization.load(const Locale('en'), translations: r1.translations);
     });
     test('is a localization object', () {
@@ -97,7 +97,10 @@ void main() {
         },
         saveLocale: false,
         assetLoader: const ImmutableJsonAssetLoader(),
-      ).loadTranslations();
+      ).loadTranslations(
+        const Locale('es', 'AR'),
+        const Locale('en'),
+      );
     });
 
     test('localeFromString() succeeds', () async {
@@ -203,7 +206,7 @@ void main() {
           assetLoader: const JsonAssetLoader());
 
       setUpAll(() async {
-        await r.loadTranslations();
+        await r.loadTranslations(r.locale, r.fallbackLocale);
         Localization.load(const Locale('en'),
             translations: r.translations,
             fallbackTranslations: r.fallbackTranslations);
@@ -387,7 +390,7 @@ void main() {
           assetLoader: const JsonAssetLoader());
 
       setUpAll(() async {
-        await r.loadTranslations();
+        await r.loadTranslations(r.locale, r.fallbackLocale);
         Localization.load(const Locale('en'),
             translations: r.translations,
             fallbackTranslations: r.fallbackTranslations);

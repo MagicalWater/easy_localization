@@ -13,7 +13,10 @@ class EasyLocalizationController extends ChangeNotifier {
   late Locale _locale;
   Locale? _fallbackLocale;
 
+  Locale? get fallbackLocale => _fallbackLocale;
+
   final Function(FlutterError e) onLoadError;
+
   // ignore: prefer_typing_uninitialized_variables
   final assetLoader;
   final String path;
@@ -21,8 +24,13 @@ class EasyLocalizationController extends ChangeNotifier {
   final bool saveLocale;
   final bool useOnlyLangCode;
   Translations? _translations, _fallbackTranslations;
+
   Translations? get translations => _translations;
+
   Translations? get fallbackTranslations => _fallbackTranslations;
+
+  Future<TranslationLoadResult?>? _waitTranslationLoad;
+  Locale? _waitLocale;
 
   EasyLocalizationController({
     required List<Locale> supportedLocales,
@@ -81,32 +89,40 @@ class EasyLocalizationController extends ChangeNotifier {
     }
   }
 
-  Future loadTranslations() async {
-    Map<String, dynamic> data;
+  Future<TranslationLoadResult?> loadTranslations(
+      Locale l, Locale? fallbackL) async {
     try {
-      data = await loadTranslationData(_locale);
-      _translations = Translations(data);
-      if (useFallbackTranslations && _fallbackLocale != null) {
+      Translations translations;
+      Translations? fallbackTranslations;
+      final localData = await loadTranslationData(l);
+      translations = Translations(localData);
+      if (useFallbackTranslations && fallbackL != null) {
         Map<String, dynamic>? baseLangData;
-        if (_locale.countryCode != null && _locale.countryCode!.isNotEmpty) {
+        if (l.countryCode != null && l.countryCode!.isNotEmpty) {
           baseLangData =
-              await loadBaseLangTranslationData(Locale(locale.languageCode));
+              await loadBaseLangTranslationData(Locale(l.languageCode));
         }
-        data = await loadTranslationData(_fallbackLocale!);
+        var fallbackData = await loadTranslationData(fallbackL);
         if (baseLangData != null) {
           try {
-            data.addAll(baseLangData);
+            fallbackData.addAll(baseLangData);
           } on UnsupportedError {
-            data = Map.of(data)..addAll(baseLangData);
+            fallbackData = Map.of(fallbackData)..addAll(baseLangData);
           }
         }
-        _fallbackTranslations = Translations(data);
+        fallbackTranslations = Translations(fallbackData);
       }
+      return TranslationLoadResult(
+        locale: l,
+        translations: translations,
+        fallbackTranslations: fallbackTranslations,
+      );
     } on FlutterError catch (e) {
       onLoadError(e);
     } catch (e) {
       onLoadError(FlutterError(e.toString()));
     }
+    return null;
   }
 
   Future<Map<String, dynamic>?> loadBaseLangTranslationData(
@@ -131,11 +147,31 @@ class EasyLocalizationController extends ChangeNotifier {
   Locale get locale => _locale;
 
   Future<void> setLocale(Locale l) async {
-    _locale = l;
-    await loadTranslations();
-    notifyListeners();
-    EasyLocalization.logger('Locale $locale changed');
-    await _saveLocale(_locale);
+    if (_waitTranslationLoad != null) {
+      _waitTranslationLoad = await _waitTranslationLoad!.then((value) {
+        return loadTranslations(l, fallbackLocale);
+      });
+    } else {
+      _waitTranslationLoad = loadTranslations(l, fallbackLocale);
+    }
+
+    await _waitTranslationLoad!.then((value) async {
+      _waitTranslationLoad = null;
+      if (value != null) {
+        apply(value);
+        notifyListeners();
+        EasyLocalization.logger('Locale ${value.locale} changed');
+        await _saveLocale(value.locale);
+      }
+    });
+  }
+
+  void apply(TranslationLoadResult translation) {
+    _locale = translation.locale;
+    _translations = translation.translations;
+    if (translation.fallbackTranslations != null) {
+      _fallbackTranslations = translation.fallbackTranslations;
+    }
   }
 
   Future<void> _saveLocale(Locale? locale) async {
@@ -190,4 +226,16 @@ extension LocaleExtension on Locale {
 
     return true;
   }
+}
+
+class TranslationLoadResult {
+  final Locale locale;
+  final Translations translations;
+  final Translations? fallbackTranslations;
+
+  TranslationLoadResult({
+    required this.locale,
+    required this.translations,
+    required this.fallbackTranslations,
+  });
 }

@@ -207,6 +207,7 @@ class _EasyLocalizationProvider extends InheritedWidget {
 
   /// Get fallback locale
   Locale? get fallbackLocale => parent.fallbackLocale;
+
   // Locale get startLocale => parent.startLocale;
 
   /// Change app locale
@@ -257,7 +258,15 @@ class _EasyLocalizationDelegate extends LocalizationsDelegate<Localization> {
   Future<Localization> load(Locale value) async {
     EasyLocalization.logger.debug('Load Localization Delegate');
     if (localizationController!.translations == null) {
-      await localizationController!.loadTranslations();
+      final locale = localizationController!.locale;
+      final fallbackLocale = localizationController!.fallbackLocale;
+      final result = await localizationController!.loadTranslations(
+        locale,
+        fallbackLocale,
+      );
+      if (result != null) {
+        localizationController!.apply(result);
+      }
     }
 
     Localization.load(value,
