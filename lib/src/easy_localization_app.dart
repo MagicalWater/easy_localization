@@ -88,7 +88,8 @@ class EasyLocalization extends StatefulWidget {
     this.assetLoader = const RootBundleAssetLoader(),
     this.saveLocale = true,
     this.errorWidget,
-  })  : assert(supportedLocales.isNotEmpty),
+  })
+      : assert(supportedLocales.isNotEmpty),
         assert(path.isNotEmpty),
         super(key: key) {
     EasyLocalization.logger.debug('Start');
@@ -183,7 +184,8 @@ class _EasyLocalizationProvider extends InheritedWidget {
   ///     GlobalCupertinoLocalizations.delegate
   ///   ],
   /// ```
-  List<LocalizationsDelegate> get delegates => [
+  List<LocalizationsDelegate> get delegates =>
+      [
         delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -259,14 +261,7 @@ class _EasyLocalizationDelegate extends LocalizationsDelegate<Localization> {
     EasyLocalization.logger.debug('Load Localization Delegate');
     if (localizationController!.translations == null) {
       final locale = localizationController!.locale;
-      final fallbackLocale = localizationController!.fallbackLocale;
-      final result = await localizationController!.loadTranslations(
-        locale,
-        fallbackLocale,
-      );
-      if (result != null) {
-        localizationController!.apply(result);
-      }
+      await localizationController!.setLocale(localizationController!.locale);
     }
 
     Localization.load(value,
