@@ -88,8 +88,7 @@ class EasyLocalization extends StatefulWidget {
     this.assetLoader = const RootBundleAssetLoader(),
     this.saveLocale = true,
     this.errorWidget,
-  })
-      : assert(supportedLocales.isNotEmpty),
+  })  : assert(supportedLocales.isNotEmpty),
         assert(path.isNotEmpty),
         super(key: key) {
     EasyLocalization.logger.debug('Start');
@@ -184,8 +183,7 @@ class _EasyLocalizationProvider extends InheritedWidget {
   ///     GlobalCupertinoLocalizations.delegate
   ///   ],
   /// ```
-  List<LocalizationsDelegate> get delegates =>
-      [
+  List<LocalizationsDelegate> get delegates => [
         delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -216,9 +214,19 @@ class _EasyLocalizationProvider extends InheritedWidget {
   /// [forceReload] - 是否強制重載語系資源, 默認為false, 代表當設置的語系與當前語系相同時, 不重新加載
   Future<void> setLocale(Locale locale, {bool forceReload = false}) async {
     // Check old locale
-    if (forceReload || locale != _localeState.locale) {
+    final isEqual = locale == _localeState.locale;
+    if (forceReload || !isEqual) {
       assert(parent.supportedLocales.contains(locale));
       await _localeState.setLocale(locale);
+
+      // 如果語系相同, 則不會觸發LocalizationsDelegate.load, 因此需要手動重載
+      if (isEqual) {
+        Localization.load(
+          locale,
+          translations: _localeState.translations,
+          fallbackTranslations: _localeState.fallbackTranslations,
+        );
+      }
     }
   }
 
@@ -261,13 +269,14 @@ class _EasyLocalizationDelegate extends LocalizationsDelegate<Localization> {
   Future<Localization> load(Locale value) async {
     EasyLocalization.logger.debug('Load Localization Delegate');
     if (localizationController!.translations == null) {
-      final locale = localizationController!.locale;
       await localizationController!.setLocale(localizationController!.locale);
     }
 
-    Localization.load(value,
-        translations: localizationController!.translations,
-        fallbackTranslations: localizationController!.fallbackTranslations);
+    Localization.load(
+      value,
+      translations: localizationController!.translations,
+      fallbackTranslations: localizationController!.fallbackTranslations,
+    );
     return Future.value(Localization.instance);
   }
 
