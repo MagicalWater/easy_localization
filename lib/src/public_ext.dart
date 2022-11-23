@@ -118,8 +118,9 @@ extension BuildContextEasyLocalizationExtension on BuildContext {
   Locale get locale => EasyLocalization.of(this)!.locale;
 
   /// Change app locale
-  Future<void> setLocale(Locale val) async =>
-      EasyLocalization.of(this)!.setLocale(val);
+  /// [forceReload] - 是否強制重載語系資源, 默認為false, 代表當設置的語系與當前語系相同時, 不重新加載
+  Future<void> setLocale(Locale val, {bool forceReload = false}) async =>
+      EasyLocalization.of(this)!.setLocale(val, forceReload: forceReload);
 
   /// Old Change app locale
   @Deprecated(
