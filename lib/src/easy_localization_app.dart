@@ -239,7 +239,20 @@ class _EasyLocalizationProvider extends InheritedWidget {
   Locale get deviceLocale => _localeState.deviceLocale;
 
   /// Reset locale to platform locale
-  Future<void> resetLocale() => _localeState.resetLocale();
+  Future<void> resetLocale() {
+    // 若重置前後語系相同, 則不會觸發重載語系, 因此在這邊需要判斷前後是否相同來決定是否重設語系文本
+    final isEqual = locale == deviceLocale;
+    return _localeState.resetLocale().then((_) {
+      if (isEqual) {
+        print('EasyLocalization resetLocale前後語系相同, 因此將強制重新匹配語系資源');
+        Localization.load(
+          locale,
+          translations: _localeState.translations,
+          fallbackTranslations: _localeState.fallbackTranslations,
+        );
+      }
+    });
+  }
 
   @override
   bool updateShouldNotify(_EasyLocalizationProvider oldWidget) {
