@@ -219,14 +219,12 @@ class _EasyLocalizationProvider extends InheritedWidget {
       assert(parent.supportedLocales.contains(locale));
       await _localeState.setLocale(locale);
 
-      // 如果語系相同, 則不會觸發LocalizationsDelegate.load, 因此需要手動重載
-      if (isEqual) {
-        Localization.load(
-          locale,
-          translations: _localeState.translations,
-          fallbackTranslations: _localeState.fallbackTranslations,
-        );
-      }
+      // 設置完語系後, 重新適配Localization
+      Localization.load(
+        locale,
+        translations: _localeState.translations,
+        fallbackTranslations: _localeState.fallbackTranslations,
+      );
     }
   }
 
@@ -241,16 +239,13 @@ class _EasyLocalizationProvider extends InheritedWidget {
   /// Reset locale to platform locale
   Future<void> resetLocale() {
     // 若重置前後語系相同, 則不會觸發重載語系, 因此在這邊需要判斷前後是否相同來決定是否重設語系文本
-    final isEqual = locale == deviceLocale;
     return _localeState.resetLocale().then((_) {
-      if (isEqual) {
-        print('EasyLocalization resetLocale前後語系相同, 因此將強制重新匹配語系資源');
-        Localization.load(
-          locale,
-          translations: _localeState.translations,
-          fallbackTranslations: _localeState.fallbackTranslations,
-        );
-      }
+      // 設置完語系後, 重新適配Localization
+      Localization.load(
+        locale,
+        translations: _localeState.translations,
+        fallbackTranslations: _localeState.fallbackTranslations,
+      );
     });
   }
 
